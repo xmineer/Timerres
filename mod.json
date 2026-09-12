@@ -44,5 +44,7 @@
         "utility",
         "performance"
     ],
-    "repository": ""
+    "links":{
+        "source": "https://github.com/xmineer/Timerres"
+    }
 }
