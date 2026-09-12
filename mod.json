@@ -1,0 +1,48 @@
+{
+    "geode": "5.10.1",
+    "gd": {
+        "win": "2.2081" 
+    },
+    "id": "xmineer.timerres",
+    "name": "Timerres",
+    "version": "v1.0.0",
+    "developer": "XMineer",
+    "description": "Allows changing the timer resolution in GD.",
+    "dependencies": {
+        "geode.node-ids": ">=v1.23.3"
+    },
+    "settings": {
+        "resolution": {
+            "name": "Timer Resolution",
+            "description": "Requested Windows timer resolution in milliseconds. Windows may use a different actual resolution depending on the system. Settings below 0.5 are rarely supported and may be ignored or changed by Windows, leaving the timer resolution unchanged.",
+            "type": "float",
+            "default": 0.5,
+            "min": 0.1,
+            "max": 15.625,
+            "control": {
+                "slider": true,
+                "slider-step": 0.1,
+                "input": true
+            },
+            "platforms": [
+                "win"
+            ]
+        },
+        "testing": {
+            "name": "Testing",
+            "description": "Runs a timer test by performing 100 Sleep(1) calls and measuring their actual duration.",
+            "type": "custom:timerres-test-button",
+            "platforms": [
+                "win"
+            ]
+        }
+    },
+    "tags": [
+        "gameplay",
+        "offline",
+        "enhancement",
+        "utility",
+        "performance"
+    ],
+    "repository": ""
+}
