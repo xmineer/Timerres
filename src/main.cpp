@@ -101,17 +101,3 @@ $on_mod(Loaded) {
 		}
 	});
 }
-
-$on_mod(Unloaded) {
-	if(isRequest == false){
-		return;
-	}
-	
-	ULONG currentRes;
-	NTSTATUS setstatus = NtSetTR(reqRes, false, &currentRes);
-	if(setstatus < 0){
-		log::warn("Removing the Timer Resolution failed! Let's see what happens now");
-		return;
-	}
-	log::debug("Timer Resolution successfully removed :) your CPU can go back to rest");
-}
