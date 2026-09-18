@@ -26,5 +26,15 @@
                 "input": true
             }
 		}
+	},
+	"tags": [
+		"gameplay",
+		"offline",
+		"enhancement",
+		"utility",
+		"performance"
+	],
+	"links":{
+		"source": "https://github.com/xmineer/Timerres"
 	}
 }
