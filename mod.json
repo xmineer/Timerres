@@ -1,0 +1,30 @@
+{
+	"geode": "5.10.1",
+	"gd": {
+		"win": "2.2081"
+	},
+	"id": "xmineer.timerres",
+	"name": "timerres",
+	"version": "v2.0.0",
+	"developer": "XMineer",
+	"description": "Allows changing the timer resolution in GD.",
+	"dependencies": {
+		"geode.node-ids": ">=v1.23.3"
+	},
+	"settings": {
+        "resolution": {
+            "name": "Timer Resolution",
+            "description": "Requested Windows timer resolution in milliseconds. Windows may use a different actual resolution depending on the system. Settings below 0.5 are rarely supported and may be ignored or changed by Windows, leaving the timer resolution unchanged.",
+			"platforms": ["win"],
+            "type": "float",
+            "default": 0.5,
+            "min": 0.1,
+            "max": 15.625,
+            "control": {
+                "slider": true,
+                "slider-step": 0.1,
+                "input": true
+            }
+		}
+	}
+}
