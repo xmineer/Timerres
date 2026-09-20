@@ -15,7 +15,7 @@ extern "C" NTSYSAPI NTSTATUS NTAPI NtSetTimerResolution(ULONG RequestedRes, BOOL
 
 void setTR(double msreqRes) {
 	ULONG currentRes;
-	static ULONG reqRes;
+	ULONG reqRes;
 
 	reqRes = static_cast<ULONG>(msreqRes * 10000);
 	
