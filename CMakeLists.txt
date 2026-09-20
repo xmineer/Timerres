@@ -17,12 +17,15 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.cpp)
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
 if (NOT DEFINED ENV{GEODE_SDK})
-    message(FATAL_ERROR "Unable to find Geode SDK! Please define GEODE_SDK environment variable to point to Geode")
+message(FATAL_ERROR "Unable to find Geode SDK! Please define GEODE_SDK environment variable to point to Geode")
 else()
-    message(STATUS "Found Geode: $ENV{GEODE_SDK}")
+message(STATUS "Found Geode: $ENV{GEODE_SDK}")
 endif()
 
 add_subdirectory($ENV{GEODE_SDK} ${CMAKE_CURRENT_BINARY_DIR}/geode)
 
 # Set up dependencies, resources, and link Geode.
 setup_geode_mod(${PROJECT_NAME})
+
+# needed for extern "C" NTSYSAPI NTSTATUS NTAPI NtSetTimerResolution(...);
+target_link_libraries(${PROJECT_NAME} ntdll)

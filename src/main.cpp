@@ -2,102 +2,55 @@
 
 #include<windows.h>
 
-// Please excuse my severe lack of knowledge of C++ (mostly just me using C type conversion), I come from the lands of C
+#define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0) // implementing the whole ntdef.h header just for this is kinda unnecessary
+
+// No more C type conversion, also mod shrunk significantly... what
+// why easy when you can do it complicated ig... now its easy fortunately
 
 using namespace geode::prelude;
- 
-using NtSetTRtype = LONG(NTAPI*)(ULONG RequestedRes, BOOLEAN DoWeSetRes, PULONG CurrentRes);
-using NtQueryTRtype = LONG(NTAPI*)(PULONG MaxRes, PULONG MinRes, PULONG CurrentRes);
 
-static NtSetTRtype NtSetTR = nullptr;
-static NtQueryTRtype NtQueryTR = nullptr;
+static bool isRequest = false;
 
-static bool isRequest = false; // I gave up, I used global here, mainly for the cleanup on unload
-static ULONG reqRes;
+extern "C" NTSYSAPI NTSTATUS NTAPI NtSetTimerResolution(ULONG RequestedRes, BOOLEAN DoWeSetRes, PULONG CurrentRes); // thank you valleyofdoom
 
-bool init() {
-
-	auto ntdll = GetModuleHandleW(L"ntdll.dll");
-
-	if (ntdll == nullptr){
-		log::error("Failed to find Windows API! TimerRes will not work. (if this fails there are bigger issues at hand, check your system)");
-		log::debug("GetModuleHandle has failed. yikes (are you even running Windows?)");
-		return false;
-	}
-
-	NtSetTR = (NtSetTRtype)GetProcAddress(ntdll, "NtSetTimerResolution");
-	if(NtSetTR == nullptr){
-		log::error("Windows API has failed! TimerRes will not work.");
-		log::debug("GetProcAddress (setTR) has failed. yikes (are you even running Windows?)");
-		return false;
-	}
-
-	NtQueryTR = (NtQueryTRtype)GetProcAddress(ntdll, "NtQueryTimerResolution");
-	if(NtQueryTR == nullptr){
-		log::error("Windows API has failed! TimerRes will not work.");
-		log::debug("GetProcAddress (queryTR) has failed. yikes (are you even running Windows?)");
-		return false;
-	}
-
-	return true;
-}
-
-bool setTR(float msreqRes) {
+void setTR(double msreqRes) {
 	ULONG currentRes;
-	NTSTATUS setstatus;
+	static ULONG reqRes;
+
+	reqRes = static_cast<ULONG>(msreqRes * 10000);
 	
-	if (isRequest == true){
-		setstatus = NtSetTR(reqRes, false, &currentRes);
-		if(setstatus < 0){
-			log::info("Removing the old Timer Resolution failed. As you can see this is [info] as this doesn't impact functionality at all lolololo");
-		}
-	}
-	reqRes = (ULONG)(msreqRes * 10000);
-	setstatus = NtSetTR(reqRes, true, &currentRes);
-	if(setstatus < 0){
-		log::warn("Changing the Timer Resolution failed! Please try again");
-		return false;
-	}
-	log::debug("Current Res: {}", currentRes);
-	// old code: 	isRequest = !isRequest; // my poor bool++, I hate you C++17
-	isRequest = true;
-
-	return true;
-}
-
-bool queryTR(PULONG actualRes) {
-	ULONG maxRes;
-	ULONG minRes;
-	NTSTATUS querystatus = NtQueryTR(&maxRes, &minRes, actualRes);
-
-	if(querystatus < 0){
-		log::warn("Querying the Timer Resolution failed! Please try again");
-		return false;
-	}
-	log::debug("Actual Res: {}", (float)*actualRes / 10000); // be happy I didn't use implicit conversion (*actualRes / 10000.0)
-
-	return true;
-}
-
-$on_mod(Loaded) {
-	
-	if (init() == false){
-		return;
-	}
-	
-	float resolution = Mod::get()->getSettingValue<float>("resolution");
-	if (setTR(resolution) == false){
-		return;
-	}
-	
-	ULONG actualRes;
-	if (queryTR(&actualRes) == false){
-		return;
-	}
-
-	listenForSettingChanges<float>("resolution", [](float setting){
-		if (setTR(setting) == false){
+	if(isRequest == true){
+		if(NT_SUCCESS(NtSetTimerResolution(0, FALSE, &currentRes)) == false){
+			log::warn("Removing the old Timer Resolution failed. Please try again");
 			return;
 		}
-	});
+		isRequest = false;
+	}
+	if(NT_SUCCESS(NtSetTimerResolution(reqRes, TRUE, &currentRes)) == false){
+		log::warn("Changing the Timer Resolution failed! Please try again");
+		return;
+	}
+	log::debug("Current Timer Resolution: {}", currentRes);
+	
+	isRequest = true; // Found out C++17 removed bool++... I hate it for that
+}
+
+$on_mod(Loaded) { 
+	setTR(Mod::get()->getSettingValue<double>("resolution"));
+
+	listenForSettingChanges<double>("resolution", [](double setting){
+		setTR(setting);
+	}, Mod::get());
+}
+
+$on_game(Exiting) {
+	ULONG currentRes;
+	if(isRequest == true){
+		if(NT_SUCCESS(NtSetTimerResolution(0, FALSE, &currentRes)) == false){
+			log::warn("Removing the old Timer Resolution failed. Retrying...");
+			if(NT_SUCCESS(NtSetTimerResolution(0, FALSE, &currentRes)) == false){ // tbh this should never happen, if it does Windows will go back to default when GD closes
+				log::error("Removing the old Timer Resolution failed again.");
+			}
+		}
+	}
 }
