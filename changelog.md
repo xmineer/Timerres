@@ -1,10 +1,15 @@
 # Changelog
 
+## v2.1.0
+
+- Read through the docs more thoroughly and improved accordingly
+- Cut source code in half by not using Handles for `ntdll`
+- Now uses `ntdll` as a library, which makes the import of the function that changes the TimerResolution easier
+
 ## v2.0.0
 
 - Rewrote the entire mod from scratch
 - Removed the timer test
-- Probably made the code more spaghetti-like, dw about it
 
 ## v1.0.0
 
