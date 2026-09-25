@@ -5,7 +5,7 @@
 	},
 	"id": "xmineer.timerresolution",
 	"name": "timerres",
-	"version": "v2.1.0",
+	"version": "v2.2.0",
 	"developer": "XMineer",
 	"description": "Allows changing the timer resolution in GD.",
 	"dependencies": {
@@ -13,8 +13,8 @@
 	},
 	"settings": {
         "resolution": {
-            "name": "Timer Resolution",
-            "description": "Requested Windows timer resolution in milliseconds. Windows may use a different actual resolution depending on the system. Settings below 0.5 are rarely supported and may be ignored or changed by Windows, setting the resolution to the lowest supported value.",
+            "name": "Timer Resolution in ms",
+            "description": "Requested Windows timer resolution in milliseconds (up to 4 decimal places). Windows may use a different actual resolution depending on the system. Settings below 0.5 are rarely supported and may be ignored or changed by Windows, setting the resolution to the lowest supported value.",
 			"platforms": ["win"],
             "type": "float",
             "default": 0.5,

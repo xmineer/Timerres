@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.2.0
+
+- Removed the only global variable by using a manager class
+- Improved compatibility with Windows by undefining a macro when it's no longer used
+
 ## v2.1.0
 
 - Read through the docs more thoroughly and improved accordingly
