@@ -5,7 +5,7 @@
 	},
 	"id": "xmineer.timerresolution",
 	"name": "timerres",
-	"version": "v2.2.0",
+	"version": "v2.2.1",
 	"developer": "XMineer",
 	"description": "Allows changing the timer resolution in GD.",
 	"dependencies": {

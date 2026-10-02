@@ -7,15 +7,23 @@
 // No more C type conversion, also mod shrunk significantly... what
 // why easy when you can do it complicated ig... now its easy fortunately
 
-// http://undocumented.ntinternals.net/index.html?page=UserMode%2FUndocumented%20Functions%2FTime%2FNtSetTimerResolution.html		regarding the Timer Resolution function
+// http://undocumented.ntinternals.net/index.html?page=UserMode%2FUndocumented%20Functions%2FTime%2FNtSetTimerResolution.html
+// regarding the Timer Resolution function
 
 using namespace geode::prelude;
 
-extern "C" NTSYSAPI NTSTATUS NTAPI NtSetTimerResolution(ULONG RequestedRes, BOOLEAN DoWeSetRes, PULONG CurrentRes); // thank you valleyofdoom, credit to them for this line
+// ntdef.h (where this macro is from) is for kernel-level apps
+// and should not be implemented here so I just took the macro
+#define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0) 
 
-#define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0) // implementing the whole ntdef.h header just for this is kinda unnecessary
+// thank you valleyofdoom, credit to them for this
+extern "C" NTSYSAPI NTSTATUS NTAPI NtSetTimerResolution(
+	ULONG RequestedRes,
+	BOOLEAN DoWeSetRes,
+	PULONG CurrentRes
+); // hate how multiple lines look but necessary to not break 80 characters rule
 
-class TimerResolutionManager {
+class TimerResolutionManager final {
 private:
 	bool m_isRequest = false; // whole ass class for this
 
@@ -32,7 +40,7 @@ public:
 	}
 
 	void setTR(double msReqRes) {
-		ULONG currentRes;
+		ULONG currentRes = 0;
 		ULONG reqRes = static_cast<ULONG>(msReqRes * 10000);
 		if (!clearTR()) {
 			log::warn("Removing the old Timer Resolution failed. Please try again");
@@ -54,10 +62,13 @@ public:
 		}
 		m_isRequest = true;
 		if (reqRes != currentRes) {
-			log::warn("Windows has rejected your requested Resolution.");
+			log::warn("Windows could not apply your requested Resolution.");
 			FLAlertLayer::create(
 				"Timerres",
-				fmt::format("Windows could not apply your <cs>{:.4f} ms</c> resolution.\nUsing <cs>{:.4f} ms</c> instead.\nPlease adjust your value accordingly.", msReqRes, static_cast<double>(currentRes) / 10000),
+				fmt::format("Windows could not apply your <cs>{:.4f} ms</c> resolution.\n"
+					"Using <cs>{:.4f} ms</c> instead.\n"
+					"Please adjust your value accordingly.",
+					msReqRes, static_cast<double>(currentRes) / 10000),
 				"Ok"
 			)->show();
 		}
@@ -65,7 +76,7 @@ public:
 	}
 };
 
-#undef NT_SUCCESS // mitigate random problems by not leaking a macro I took from Windows
+#undef NT_SUCCESS // mitigate random problems by not leaking a kernel-mode macro
 
 TimerResolutionManager& getTRM() {
     static TimerResolutionManager s_TRManager;
@@ -80,7 +91,8 @@ $on_mod(Loaded) {
 	}, Mod::get());
 }
 
-
 $on_game(Exiting) {
-	getTRM().clearTR(); // if it fails Windows will go back to default when GD closes
+	if (!getTRM().clearTR()) { // if it fails Windows will remove the request itself when GD closes
+		log::warn("Removing the Timer Resolution failed.");
+	} 
 }

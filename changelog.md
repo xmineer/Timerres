@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.2.1
+
+- roughly applied maximum line limit of 80
+- various cleanup & improvements such as making TimerResolutionManager final
+
 ## v2.2.0
 
 - Removed the only global variable by using a manager class
